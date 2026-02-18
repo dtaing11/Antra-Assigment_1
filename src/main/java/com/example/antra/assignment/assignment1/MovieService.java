@@ -21,29 +21,30 @@ public class MovieService {
     @Autowired
     private RestTemplate restTemplate;
 
-    public List<Movie> fetchAllPages(String title, Integer year) throws InterruptedException, ExecutionException {
-
+    public List<Movie> fetchAllPages(Integer page, String title, Integer year) throws InterruptedException, ExecutionException {
         MovieResponse first = fetchPage(1, title, year);
+        if (page != null) {
+            MovieResponse response = fetchPage(page, title, year);
+            return (response == null || response.getData() == null)
+                    ? List.of()
+                    : response.getData();
+        }
         if (first == null) return List.of();
         int totalPages = first.getTotalPages();
         List<Movie> result = new ArrayList<>(first.getData());
         try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
-
             List<Callable<List<Movie>>> tasks = new ArrayList<>();
-            for (int page = 2; page <= totalPages; page++) {
-                final int p = page;
+            for (int pageTask = 2;  pageTask <= totalPages; pageTask++) {
+                final int p = pageTask;
                 tasks.add(() -> fetchPage(p, title, year).getData());
             }
             var futures = executor.invokeAll(tasks);
-
             for (Future<List<Movie>> f : futures) {
                 result.addAll(f.get());
             }
-
             return result;
         }
     }
-
     private MovieResponse fetchPage(int page, String title, Integer year) {
         UriComponentsBuilder builder =UriComponentsBuilder.fromUriString(BASE_URL)
                 .queryParam("page", page);

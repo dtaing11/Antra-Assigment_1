@@ -21,9 +21,10 @@ public class MovieController {
 
     @GetMapping
     public List<Movie> getMovies(
+            @RequestParam(required = false) Integer page,
             @RequestParam(required = false) String title,
             @RequestParam(required = false) Integer year
     ) throws InterruptedException, ExecutionException {
-        return movieService.fetchAllPages(title, year);
+        return movieService.fetchAllPages(page,title, year);
     } 
 }
