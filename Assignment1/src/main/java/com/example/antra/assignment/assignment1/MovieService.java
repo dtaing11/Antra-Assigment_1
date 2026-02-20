@@ -22,13 +22,15 @@ public class MovieService {
     private RestTemplate restTemplate;
 
     public List<Movie> fetchAllPages(Integer page, String title, Integer year) throws InterruptedException, ExecutionException {
-        MovieResponse first = fetchPage(1, title, year);
+        
         if (page != null) {
             MovieResponse response = fetchPage(page, title, year);
             return (response == null || response.getData() == null)
                     ? List.of()
                     : response.getData();
         }
+
+        MovieResponse first = fetchPage(1, title, year);
         if (first == null) return List.of();
         int totalPages = first.getTotalPages();
         List<Movie> result = new ArrayList<>(first.getData());
@@ -45,6 +47,7 @@ public class MovieService {
             return result;
         }
     }
+    
     private MovieResponse fetchPage(int page, String title, Integer year) {
         UriComponentsBuilder builder =UriComponentsBuilder.fromUriString(BASE_URL)
                 .queryParam("page", page);
